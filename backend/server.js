@@ -470,10 +470,14 @@ app.get("/support/history/:email", async (req, res) => {
 /* ================= REVIEWS ================= */
 
 // SUBMIT REVIEW
-app.post("/reviews", upload.none(), async (req, res) => {
+app.post("/reviews", upload.array("images", 5), async (req, res) => {
+
   try {
     const { productId, userEmail, userName, rating, comment } = req.body;
 
+    const imagePaths = req.files
+  ? req.files.map(file => `/uploads/${file.filename}`)
+  : [];
     // 1. Create Review
     const newReview = await Review.create({
       productId,
@@ -481,7 +485,7 @@ app.post("/reviews", upload.none(), async (req, res) => {
       userName,
       rating: Number(rating),
       comment,
-      images: [], // No images in this flow yet
+      images: imagePaths,
     });
 
     // 2. Update Product Ratings
@@ -490,7 +494,8 @@ app.post("/reviews", upload.none(), async (req, res) => {
     const averageRating = totalRating / allReviews.length;
 
     await Product.findByIdAndUpdate(productId, {
-      averageRating: averageRating.toFixed(1),
+      averageRating: Number(averageRating.toFixed(1)),
+
       ratingCount: allReviews.length,
     });
 
@@ -498,6 +503,19 @@ app.post("/reviews", upload.none(), async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to submit review" });
+  }
+});
+
+
+app.get("/reviews/:productId", async (req, res) => {
+  try {
+    const reviews = await Review.find({
+      productId: req.params.productId,
+    }).sort({ createdAt: -1 });
+
+    res.json(reviews);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch reviews" });
   }
 });
 
