@@ -24,18 +24,25 @@ const AddCategory = () => {
   // Add or Update category
   const handleSubmit = async () => {
     if (!name) return;
+    const token = localStorage.getItem("token");
 
     if (editId) {
       await fetch(`http://localhost:5000/admin/category/${editId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ name, email: ADMIN_EMAIL }),
       });
       setEditId(null);
     } else {
       await fetch("http://localhost:5000/admin/category", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ name, email: ADMIN_EMAIL }),
       });
     }
@@ -52,9 +59,13 @@ const AddCategory = () => {
 
   // Delete
   const handleDelete = async (id) => {
+    const token = localStorage.getItem("token");
     await fetch(`http://localhost:5000/admin/category/${id}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
       body: JSON.stringify({ email: ADMIN_EMAIL }),
     });
     fetchCategories();

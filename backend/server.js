@@ -265,12 +265,45 @@ app.post("/login", async (req, res) => {
 
 // CATEGORY
 app.post("/admin/category", verifyAdmin, async (req, res) => {
-  const category = await Category.create({ name: req.body.name });
-  res.json(category);
+  try {
+    const category = await Category.create({ name: req.body.name });
+    res.json(category);
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json({ message: "Category already exists" });
+    }
+    res.status(500).json({ message: "Failed to create category" });
+  }
 });
 
 app.get("/categories", async (req, res) => {
-  res.json(await Category.find());
+  try {
+    res.json(await Category.find());
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch categories" });
+  }
+});
+
+app.put("/admin/category/:id", verifyAdmin, async (req, res) => {
+  try {
+    const category = await Category.findByIdAndUpdate(
+      req.params.id,
+      { name: req.body.name },
+      { new: true }
+    );
+    res.json(category);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to update category" });
+  }
+});
+
+app.delete("/admin/category/:id", verifyAdmin, async (req, res) => {
+  try {
+    await Category.findByIdAndDelete(req.params.id);
+    res.json({ message: "Category deleted" });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to delete category" });
+  }
 });
 
 // PRODUCT
@@ -423,9 +456,9 @@ app.get("/cart/:email", async (req, res) => {
 app.post("/cart", async (req, res) => {
   try {
     const { userEmail, productId, name, price, img, qty } = req.body;
-    
+
     let cartItem = await Cart.findOne({ userEmail, productId });
-    
+
     if (cartItem) {
       cartItem.qty += qty;
       cartItem.price = cartItem.qty * cartItem.unitPrice;
@@ -463,7 +496,7 @@ app.post("/cart/update-qty", async (req, res) => {
   try {
     const { userEmail, productId, qty } = req.body;
     const cartItem = await Cart.findOne({ userEmail, productId });
-    
+
     if (cartItem) {
       cartItem.qty = qty;
       cartItem.price = cartItem.qty * cartItem.unitPrice;
