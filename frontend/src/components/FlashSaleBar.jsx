@@ -13,7 +13,7 @@ const FlashSaleBar = () => {
                 <div className="divider">|</div>
                 <div className="flash-item">
                     <FaTruck />
-                    <span>Free Shipping on Orders Over $50</span>
+                    <span>Free Shipping on Orders Over ₹50</span>
                 </div>
                 <div className="divider">|</div>
                 <div className="flash-item">

@@ -103,8 +103,8 @@ const HomePage = () => {
                   className="price-slider"
                 />
                 <div className="price-values">
-                  <span>$0</span>
-                  <span>${priceRange}</span>
+                  <span>₹0</span>
+                  <span>₹{priceRange}</span>
                 </div>
               </div>
             </div>
