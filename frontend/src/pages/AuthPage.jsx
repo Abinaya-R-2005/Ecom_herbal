@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaGoogle, FaFacebookF, FaEnvelope, FaLock, FaUser, FaEye, FaEyeSlash } from 'react-icons/fa';
-import './AuthPage.css';
-
 import { useNavigate } from "react-router-dom";
+import { useToast } from '../context/ToastContext';
+import './AuthPage.css';
 
 
 const AuthPage = () => {
@@ -14,6 +14,7 @@ const AuthPage = () => {
     const [success, setSuccess] = useState("");
     const [acceptedTerms, setAcceptedTerms] = useState(false);
     const navigate = useNavigate();
+    const { showToast } = useToast();
 
     const [isLogin, setIsLogin] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
@@ -92,7 +93,7 @@ const AuthPage = () => {
         const data = await res.json();
 
         if (!res.ok) {
-            alert(data.message);
+            showToast(data.message, "error");
             return;
         }
 

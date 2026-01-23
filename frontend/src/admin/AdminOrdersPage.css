@@ -21,14 +21,31 @@
   align-items: center;
   gap: 20px;
   margin-bottom: 30px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 2px solid #e5e7eb;
   padding-bottom: 20px;
+}
+
+.ao-header-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+}
+
+.admin-orders-logo {
+  height: 45px;
+  width: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .ao-header h2 {
   font-size: 1.5rem;
   color: #111827;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .back-btn {
@@ -40,6 +57,11 @@
   cursor: pointer;
   font-weight: 500;
   color: var(--primary-color);
+  transition: all 0.3s;
+}
+
+.back-btn:hover {
+  transform: translateX(-3px);
 }
 
 /* ================= LOADING ================= */

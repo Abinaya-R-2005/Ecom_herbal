@@ -38,14 +38,14 @@ const ProductCard = ({ product }) => {
   const now = new Date();
 
 const discountActive =
-  product.discountPercent > 0 &&
+  product.discountAmount > 0 &&
   product.discountStart &&
   product.discountEnd &&
   now >= new Date(product.discountStart) &&
   now <= new Date(product.discountEnd);
 
 const discountedPrice = discountActive
-  ? Math.round(product.price - (product.price * product.discountPercent) / 100)
+  ? Math.round(product.price - product.discountAmount)
   : product.price;
 
 

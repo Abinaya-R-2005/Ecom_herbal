@@ -342,6 +342,16 @@
 
 .pro-back-wrapper {
   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.admin-profile-logo {
+  height: 45px;
+  width: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .pro-back-btn {

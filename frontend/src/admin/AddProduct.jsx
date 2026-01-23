@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../context/ToastContext";
 import "./AddProduct.css";
 
 const AddProduct = () => {
@@ -11,10 +12,11 @@ const AddProduct = () => {
     description: "",
   });
   const [image, setImage] = useState(null);
-  const [galleryImages, setGalleryImages] = useState([]); // ✅ New state
+
 
   const adminEmail = "admin@gmail.com";
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   useEffect(() => {
     fetch("http://localhost:5000/categories")
@@ -31,11 +33,6 @@ const AddProduct = () => {
     formData.append("email", adminEmail);
     formData.append("image", image); // 🔥 IMPORTANT
 
-    // Append Gallery Images
-    for (let i = 0; i < galleryImages.length; i++) {
-      formData.append("galleryImages", galleryImages[i]);
-    }
-
     const token = localStorage.getItem("token");
 
     const res = await fetch("http://localhost:5000/admin/product", {
@@ -47,11 +44,11 @@ const AddProduct = () => {
     });
 
     if (res.ok) {
-      alert("Product Added Successfully!");
+      showToast("Product added successfully and is now live!", "success");
       navigate(-1);
     } else {
       const data = await res.json();
-      alert(data.message || "Failed to add product");
+      showToast(data.message || "Failed to add product", "error");
     }
   };
 
@@ -93,15 +90,6 @@ const AddProduct = () => {
           type="file"
           accept="image/*"
           onChange={(e) => setImage(e.target.files[0])}
-        />
-
-        {/* Gallery Images Upload */}
-        <label className="upload-label">Upload Additional Images (Gallery)</label>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={(e) => setGalleryImages(e.target.files)}
         />
 
         <textarea

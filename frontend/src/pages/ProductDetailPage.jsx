@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import { FaStar, FaShoppingCart, FaArrowLeft } from "react-icons/fa";
+import { useToast } from "../context/ToastContext";
 
 import { useCart } from "../context/CartContext";
 import "./ProductDetailPage.css";
@@ -10,6 +11,7 @@ const ProductDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { showToast } = useToast();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -69,7 +71,7 @@ const ProductDetailPage = () => {
   const handleSubmitReview = async (e) => {
     e.preventDefault();
     if (!user) {
-      alert("Please login to leave a review");
+      showToast("Please login to leave a review", "error");
       return;
     }
 
@@ -124,14 +126,14 @@ const ProductDetailPage = () => {
     // Calculate dynamic price based on discount logic
     const now = new Date();
     const isDiscountActive =
-      product.discountPercent > 0 &&
+      product.discountAmount > 0 &&
       product.discountStart &&
       product.discountEnd &&
       now >= new Date(product.discountStart) &&
       now <= new Date(product.discountEnd);
 
     const finalPrice = isDiscountActive
-      ? (product.price * (1 - product.discountPercent / 100))
+      ? (product.price - product.discountAmount)
       : product.price;
 
     navigate("/checkout", {
@@ -152,14 +154,14 @@ const ProductDetailPage = () => {
   const now = new Date();
 
   const isDiscountActive =
-    product.discountPercent > 0 &&
+    product.discountAmount > 0 &&
     product.discountStart &&
     product.discountEnd &&
     now >= new Date(product.discountStart) &&
     now <= new Date(product.discountEnd);
 
   const discountedPrice = isDiscountActive
-    ? (product.price * (1 - product.discountPercent / 100)).toFixed(2)
+    ? (product.price - product.discountAmount).toFixed(2)
     : product.price;
 
   return (
@@ -223,20 +225,7 @@ const ProductDetailPage = () => {
             <p className="detail-description">
               {product.description || `Elevate your style with this premium quality ${product.name.toLowerCase()}.`}
             </p>
-            <div className="selection-group">
-              <h4>Select Size</h4>
-              <div className="size-options">
-                {sizes.map((size) => (
-                  <button
-                    key={size}
-                    className={`size-btn ${selectedSize === size ? "active" : ""}`}
-                    onClick={() => setSelectedSize(size)}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
-            </div>
+
             <div className="selection-group">
               <h4>Quantity</h4>
               <div className="quantity-control">

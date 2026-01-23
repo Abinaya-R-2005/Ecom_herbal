@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaCloudUploadAlt, FaTimes, FaArrowLeft, FaPaperPlane, FaPlus } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../context/ToastContext";
 import "./CustomerService.css";
 
 const CustomerService = () => {
@@ -9,6 +10,7 @@ const CustomerService = () => {
     const [newMessage, setNewMessage] = useState("");
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState(null);
+    const { showToast } = useToast();
 
     // New Chat State
     const [showNewChatForm, setShowNewChatForm] = useState(false);
@@ -50,7 +52,7 @@ const CustomerService = () => {
             setShowNewChatForm(false);
             fetchChats();
         } catch (err) {
-            alert("Failed to start chat");
+            showToast("Failed to start chat", "error");
         }
     };
 
@@ -84,7 +86,7 @@ const CustomerService = () => {
             setActiveChat(data.find(c => c._id === activeChat._id));
 
         } catch (err) {
-            alert("Failed to send message");
+            showToast("Failed to send message", "error");
         }
     };
 

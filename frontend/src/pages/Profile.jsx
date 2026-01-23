@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useWishlist } from "../context/WishlistContext";
 import { useCart } from "../context/CartContext";
+import { useToast } from "../context/ToastContext";
 import {
   FaUserCircle, FaBoxOpen, FaMapMarkerAlt,
   FaSignOutAlt, FaEdit, FaPlus,
@@ -18,6 +19,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const { removeFromWishlist, setWishlist } = useWishlist();
   const { addToCart } = useCart();
+  const { showToast } = useToast();
 
   // ✅ SAFE localStorage read (NO CRASH)
   const userLocal = localStorage.getItem("user")
@@ -77,7 +79,7 @@ const Profile = () => {
   };
 
   const handleAddAddress = async () => {
-    if (!addressText) return alert("Address required");
+    if (!addressText) return showToast("Address required", "error");
 
     const res = await fetch("http://localhost:5000/user/address", {
       method: "POST",
@@ -97,27 +99,47 @@ const Profile = () => {
   };
 
   const handleChangePassword = async () => {
-    if (!newPassword || newPassword !== confirmPassword) {
-      return alert("Passwords do not match");
+    // Validation
+    if (!currentPassword) {
+      return showToast("Current password is required", "error");
+    }
+    if (!newPassword) {
+      return showToast("New password is required", "error");
+    }
+    if (!confirmPassword) {
+      return showToast("Please confirm your new password", "error");
+    }
+    if (newPassword !== confirmPassword) {
+      return showToast("New passwords do not match", "error");
+    }
+    if (newPassword.length < 6) {
+      return showToast("New password must be at least 6 characters", "error");
     }
 
-    const res = await fetch("http://localhost:5000/user/update-password", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: userEmail,
-        currentPassword,
-        newPassword
-      })
-    });
+    try {
+      const res = await fetch("http://localhost:5000/user/update-password", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: userEmail,
+          currentPassword,
+          newPassword
+        })
+      });
 
-    const data = await res.json();
-    alert(data.message || "Password updated");
+      const data = await res.json();
 
-    if (res.ok) {
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+      if (res.ok) {
+        showToast(data.message, "success");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        showToast(data.message, "error");
+      }
+    } catch (err) {
+      console.error("Password update error:", err);
+      showToast("Failed to update password", "error");
     }
   };
 
@@ -215,49 +237,45 @@ const Profile = () => {
                     <strong>{order.productName}</strong>
                     <p>{new Date(order.createdAt).toLocaleDateString()}</p>
                   </div>
-                  <span className={`status-badge ${order.status?.toLowerCase()}`}>
-                    {order.status}
-                  </span>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <span className={`status-badge ${order.status?.toLowerCase()}`}>
+                      {order.status}
+                    </span>
+                    {(order.status === 'Ordered' || order.status === 'Pending') && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(`http://localhost:5000/orders/${order._id}/cancel-by-user`, {
+                              method: "PUT"
+                            });
+                            const data = await res.json();
+                            if (res.ok) {
+                              showToast("Cancellation requested. Waiting for admin approval.", "success");
+                              setOrders(prev => prev.map(o => o._id === order._id ? { ...o, status: 'Cancellation Requested' } : o));
+                            } else {
+                              showToast(data.message || "Failed to request cancellation", "error");
+                            }
+                          } catch (err) {
+                            console.error(err);
+                            showToast("Error requesting cancellation", "error");
+                          }
+                        }}
+                        style={{
+                          padding: '5px 10px',
+                          backgroundColor: '#ff4444',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '12px'
+                        }}
+                      >
+                        Request Cancel
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))
-            )}
-          </section>
-
-          {/* ADDRESSES */}
-          <section className="pro-content-section">
-            <div className="header-title">
-              <FaMapMarkerAlt /> <h3>Saved Addresses</h3>
-            </div>
-
-            {addresses.length === 0 ? (
-              <div className="pro-empty-placeholder">No saved addresses</div>
-            ) : (
-              addresses.map((a, i) => (
-                <div key={i} className="pro-address-card">
-                  <strong>{a.label}</strong>
-                  <p>{a.address}</p>
-                </div>
-              ))
-            )}
-
-            <button className="pro-add-btn" onClick={() => setShowAddressForm(true)}>
-              <FaPlus /> Add New
-            </button>
-
-            {showAddressForm && (
-              <div className="pro-form-card">
-                <input
-                  placeholder="Label"
-                  value={addressLabel}
-                  onChange={e => setAddressLabel(e.target.value)}
-                />
-                <textarea
-                  placeholder="Full address"
-                  value={addressText}
-                  onChange={e => setAddressText(e.target.value)}
-                />
-                <button onClick={handleAddAddress}>Save Address</button>
-              </div>
             )}
           </section>
 

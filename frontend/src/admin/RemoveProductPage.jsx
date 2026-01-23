@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Trash2, ArrowLeft, Search, Edit } from "lucide-react";
+import { useToast } from "../context/ToastContext";
 
 import "./RemoveProductPage.css";
 
@@ -10,20 +11,21 @@ const RemoveProductPage = () => {
     const [products, setProducts] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
+    const { showToast } = useToast();
 
     const user = JSON.parse(localStorage.getItem("user"));
 
     useEffect(() => {
         if (!user || !user.isAdmin) {
-            navigate("/login");
+            navigate("/login", { replace: true });
             return;
         }
         fetchProducts();
-    }, []);
+    }, [navigate]);
 
     const fetchProducts = async () => {
         try {
-            const res = await fetch("http://localhost:5000/products");
+            const res = await fetch("http://localhost:5000/products?showAll=true");
             const data = await res.json();
             setProducts(data);
             setLoading(false);
@@ -34,8 +36,6 @@ const RemoveProductPage = () => {
     };
 
     const handleDelete = async (productId) => {
-        if (!window.confirm("Are you sure you want to delete this product?")) return;
-
         const token = localStorage.getItem("token");
 
         try {
@@ -49,12 +49,13 @@ const RemoveProductPage = () => {
 
             if (res.ok) {
                 setProducts(products.filter((p) => p._id !== productId));
-                alert("Product deleted successfully");
+                showToast("Product deleted successfully", "success");
             } else {
-                alert("Failed to delete product");
+                showToast("Failed to delete product", "error");
             }
         } catch (err) {
             console.error("Error deleting product:", err);
+            showToast("Error deleting product", "error");
         }
     };
 

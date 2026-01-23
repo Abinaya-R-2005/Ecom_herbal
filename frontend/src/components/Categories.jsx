@@ -1,17 +1,35 @@
 import { useEffect, useState } from "react";
 
 export default function Categories() {
-  const { categories } = require("../data/categories");
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:5000/categories")
+      .then(res => res.json())
+      .then(data => setCategories(data))
+      .catch(err => console.error("Failed to fetch categories", err));
+  }, []);
+
+  // Map database category names to icons
+  const iconMap = {
+    "Herbal Oils": "💧",
+    "Handmade Soaps": "🧼",
+    "Hair Cleansers": "✨",
+    "Skin Care": "🍃",
+    "Health Beverages": "🍵",
+    "Pure Ghee": "🥣",
+    "Lip Balms": "💄",
+  };
 
   return (
     <div className="categories">
       {/* Static header – keep this */}
       <span>☰ All Categories</span>
 
-      {/* Dynamic categories from local data */}
+      {/* Dynamic categories from database */}
       {categories.map((cat) => (
-        <span key={cat.id}>
-          {cat.icon} {cat.name}
+        <span key={cat._id}>
+          {iconMap[cat.name] || "📦"} {cat.name}
         </span>
       ))}
     </div>

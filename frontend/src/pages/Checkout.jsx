@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
 import { useCart } from "../context/CartContext";
 import { ChevronLeft, Lock, FileText } from 'lucide-react';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useToast } from '../context/ToastContext';
 import OrderReceipt from '../components/OrderReceipt';
 import './Checkout.css';
 
 const Checkout = () => {
   const { cart, clearCart } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
   const user = JSON.parse(localStorage.getItem("user"));
+  const { showToast } = useToast();
+
+  // Decide which items to checkout (Buy Now Item OR Cart)
+  const buyNowItem = location.state?.buyNowItem;
+  const itemsToCheckout = buyNowItem ? [buyNowItem] : cart;
 
   // State for selection logic
   const [selectedShipping, setSelectedShipping] = useState('standard');
@@ -30,7 +37,11 @@ const Checkout = () => {
   };
 
   // Calculations
-  const subtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
+  const subtotal = itemsToCheckout.reduce((acc, item) => {
+    const itemPrice = Number(item.price) || 0;
+    const itemQty = Number(item.qty) || 1;
+    return acc + (itemPrice * itemQty);
+  }, 0);
   const shippingCosts = { standard: 0, express: 9.99, overnight: 24.99 };
   const shippingCost = shippingCosts[selectedShipping];
   const tax = subtotal * 0.08;
@@ -38,46 +49,58 @@ const Checkout = () => {
 
   const handlePlaceOrder = async () => {
     if (!user) {
-      alert("Please login to place an order");
+      showToast("Please login to place an order", "error");
       navigate("/login");
       return;
     }
 
     if (!shippingInfo.firstName || !shippingInfo.address || !shippingInfo.phone) {
-      alert("Please fill in required shipping information including phone number");
+      showToast("Please fill in required shipping information including phone number", "error");
       return;
     }
 
     try {
-      const orderPromises = cart.map(item =>
-        fetch("http://localhost:5000/orders", {
+      const orderPromises = itemsToCheckout.map(item => {
+        const itemPrice = Number(item.price) || 0;
+        const itemQty = Number(item.qty) || 1;
+        const itemSubtotal = itemPrice * itemQty;
+        const itemTax = itemSubtotal * 0.08;
+        const itemShippingCost = shippingCost / itemsToCheckout.length;
+        const itemTotal = itemSubtotal + itemTax + itemShippingCost;
+
+        return fetch("http://localhost:5000/orders", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             productName: item.name,
             productId: item._id || item.id,
-            quantity: item.qty,
-            price: item.price * item.qty,
+            quantity: itemQty,
+            price: itemPrice,
+            pricePerUnit: itemPrice,
+            totalPrice: itemSubtotal,
             userEmail: user.email,
             userName: user.name,
-            phone: shippingInfo.phone, // ✅ Sending phone number
+            phone: shippingInfo.phone,
             shippingAddress: shippingInfo,
             shippingMethod: selectedShipping,
             paymentMethod: selectedPayment,
-            shippingCost: shippingCost,
-            tax: item.qty * (item.price * 0.08), // simplistic per-item tax
-            totalAmount: (item.price * item.qty) + (item.qty * (item.price * 0.08)) + (shippingCost / cart.length), // simplistic allocation
-            variation: item.variation || item.size // ✅ Syncing variation
+            shippingCost: itemShippingCost,
+            tax: itemTax,
+            totalAmount: Math.round((itemSubtotal + itemTax + itemShippingCost) * 100) / 100,
+            variation: item.variation || item.size
           })
-        })
-      );
+        });
+      });
 
       await Promise.all(orderPromises);
-      if (clearCart) clearCart();
-      navigate('/order-success', { state: { purchasedItems: cart } });
+
+      // key fix: Only clear cart if we checked out the cart. Buy Now shouldn't clear cart.
+      if (!buyNowItem && clearCart) clearCart();
+
+      navigate('/order-success', { state: { purchasedItems: itemsToCheckout } });
     } catch (error) {
       console.error("Order failed:", error);
-      alert("Failed to place order. Please try again.");
+      showToast("Failed to place order. Please try again.", "error");
     }
   };
 
@@ -323,8 +346,8 @@ const Checkout = () => {
               <h3>Order Summary</h3>
 
               <div className="itemized-list">
-                {cart.map(item => (
-                  <div key={item.id} className="summary-product">
+                {itemsToCheckout.map(item => (
+                  <div key={item.id || item._id} className="summary-product">
                     {/* ✅ Robust Image Loading Logic */}
                     <img
                       src={(item.image || item.img || "").startsWith("/")
@@ -392,7 +415,7 @@ const Checkout = () => {
             tax,
             totalAmount: total
           }}
-          items={cart}
+          items={itemsToCheckout}
           onClose={() => setShowReceipt(false)}
         />
       )}

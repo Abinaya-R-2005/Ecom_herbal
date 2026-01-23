@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useToast } from "../context/ToastContext";
 import "./EditProductPage.css";
 
 const EditProductPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
+  const [image, setImage] = useState(null);
+  const { showToast } = useToast();
 
   const location = useLocation();
   const isDiscountTab = new URLSearchParams(location.search).get("tab") === "discount";
@@ -17,7 +20,7 @@ const EditProductPage = () => {
     category: "",
     price: "",
     description: "",
-    discountPercent: 0,
+    discountAmount: 0,
     discountStart: "",
     discountEnd: "",
   });
@@ -27,9 +30,9 @@ const EditProductPage = () => {
       .then(data => setCategories(data))
       .catch(err => console.error("Failed to fetch categories", err));
   }, []);
-  
+
   useEffect(() => {
-    fetch(`http://localhost:5000/products/${id}`)
+    fetch(`http://localhost:5000/products/${id}?showAll=true`)
       .then(res => res.json())
       .then(data => {
         setForm({
@@ -47,141 +50,160 @@ const EditProductPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Send only required fields
-    const payload = isDiscountTab
-      ? {
-          discountPercent: form.discountPercent,
-          discountStart: form.discountStart,
-          discountEnd: form.discountEnd,
-        }
-      : {
-          name: form.name,
-          category: form.category,
-          price: form.price,
-          description: form.description,
-        };
+    const formData = new FormData();
+    if (isDiscountTab) {
+      formData.append("discountAmount", form.discountAmount);
+      formData.append("discountStart", form.discountStart);
+      formData.append("discountEnd", form.discountEnd);
+    } else {
+      formData.append("name", form.name);
+      formData.append("category", form.category);
+      formData.append("price", form.price);
+      formData.append("description", form.description);
+      if (image) {
+        formData.append("image", image);
+      }
+    }
 
     const res = await fetch(`http://localhost:5000/admin/product/${id}`, {
       method: "PUT",
       headers: {
-        "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
+        // Content-Type not needed for FormData, browser sets it with boundary
       },
-      body: JSON.stringify(payload),
+      body: formData,
     });
 
     if (res.ok) {
-      alert(isDiscountTab ? "Discount updated" : "Product updated");
+      showToast(isDiscountTab ? "Discount updated successfully" : "Product updated successfully", "success");
       navigate("/admin/remove-product");
+    } else {
+      const data = await res.json();
+      showToast(data.message || "Failed to update product", "error");
     }
   };
   const discountedPrice =
-  form.price && form.discountPercent
-    ? (
-        form.price -
-        (form.price * form.discountPercent) / 100
-      ).toFixed(2)
-    : "";
+    form.discountAmount === ""
+      ? ""
+      : form.price - Number(form.discountAmount || 0);
 
   return (
     <div className="edit-container">
-        <h1 className ="heading">{isDiscountTab ? "Manage Discount" : "Edit Product"}</h1>
-        <button     className="back-btn"    onClick={() => navigate(-1)}> ← Back </button>
+      <h1 className="heading">{isDiscountTab ? "Manage Discount" : "Edit Product"}</h1>
+      <button className="back-btn" onClick={() => navigate(-1)}> ← Back </button>
 
-      
+
 
       <form className="edit-form" onSubmit={handleSubmit}>
-      {!isDiscountTab && (
-  <>
-    <label>Product Name</label>
-    <input
-      name="name"
-      value={form.name}
-      onChange={handleChange}
-      required
-    />
+        {!isDiscountTab && (
+          <>
+            <label>Product Name</label>
+            <input
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              required
+            />
 
-    <label>Category</label>
-    <select
-      name="category"
-      value={form.category}
-      onChange={handleChange}
-      required
-    >
-      <option value="">Select Category</option>
-      {categories.map((cat) => (
-        <option key={cat._id} value={cat.name}>
-          {cat.name}
-        </option>
-      ))}
-    </select>
+            <label>Category</label>
+            <select
+              name="category"
+              value={form.category}
+              onChange={handleChange}
+              required
+            >
+              <option value="">Select Category</option>
+              {categories.map((cat) => (
+                <option key={cat._id} value={cat.name}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
 
-    <label>Price</label>
-    <input
-      type="number"
-      name="price"
-      value={form.price}
-      onChange={handleChange}
-      required
-    />
+            <label>Price</label>
+            <input
+              type="number"
+              name="price"
+              value={form.price}
+              onChange={handleChange}
+              required
+            />
 
-    <label>Description</label>
-    <textarea
-      name="description"
-      value={form.description}
-      onChange={handleChange}
-    />
-  </>
-)}
+            <label>Description</label>
+            <textarea
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+            />
 
-{isDiscountTab && (
-  <>
-    {/* Original Price */}
-    <label>Original Price</label>
-    <input
-      type="number"
-      value={form.price}
-      disabled
-    />
+            <label>Update Product Image</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImage(e.target.files[0])}
+            />
+          </>
+        )}
 
-    {/* Discount Percentage */}
-    <label>Discount Percentage (%)</label>
-    <input
-      type="number"
-      name="discountPercent"
-      value={form.discountPercent}
-      onChange={handleChange}
-      min="0"
-      max="100"
-    />
+        {isDiscountTab && (
+          <>
+            {/* Original Price */}
+            <label>Original Price</label>
+            <input
+              type="number"
+              value={form.price}
+              disabled
+            />
 
-    {/* Discounted Price */}
-    <label>Discounted Price</label>
-    <input
-      type="number"
-      value={discountedPrice}
-      disabled
-    />
+            {/* Discount Amount (Read Only) */}
+            <label>Discount Amount (₹)</label>
+            <input
+              type="number"
+              name="discountAmount"
+              value={form.discountAmount}
+              disabled
+              className="read-only-input"
+            />
 
-    {/* Discount Start */}
-    <label>Discount Start</label>
-    <input
-      type="datetime-local"
-      name="discountStart"
-      value={form.discountStart}
-      onChange={handleChange}
-    />
+            {/* Final Price (Editable) */}
+            <label>Final Price After Discount (Enter this)</label>
+            <input
+              type="number"
+              value={discountedPrice}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "") {
+                  setForm({ ...form, discountAmount: "" });
+                  return;
+                }
+                const finalPrice = parseFloat(val);
+                const originalPrice = parseFloat(form.price);
+                if (!isNaN(finalPrice) && !isNaN(originalPrice)) {
+                  setForm({ ...form, discountAmount: (originalPrice - finalPrice) });
+                }
+              }}
+              placeholder="Enter the final price you want"
+            />
 
-    {/* Discount End */}
-    <label>Discount End</label>
-    <input
-      type="datetime-local"
-      name="discountEnd"
-      value={form.discountEnd}
-      onChange={handleChange}
-    />
-  </>
-)}
+            {/* Discount Start */}
+            <label>Discount Start</label>
+            <input
+              type="datetime-local"
+              name="discountStart"
+              value={form.discountStart}
+              onChange={handleChange}
+            />
+
+            {/* Discount End */}
+            <label>Discount End</label>
+            <input
+              type="datetime-local"
+              name="discountEnd"
+              value={form.discountEnd}
+              onChange={handleChange}
+            />
+          </>
+        )}
 
 
         <button type="submit" className="save-btn">Save</button>

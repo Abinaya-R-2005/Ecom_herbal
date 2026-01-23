@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FaArrowLeft, FaPaperPlane, FaCloudUploadAlt, FaTimes, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../context/ToastContext";
 import "./AdminSupportPage.css";
 
 const AdminSupportPage = () => {
@@ -10,6 +11,7 @@ const AdminSupportPage = () => {
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState(null);
     const navigate = useNavigate();
+    const { showToast } = useToast();
 
     useEffect(() => {
         fetchChats();
@@ -59,7 +61,7 @@ const AdminSupportPage = () => {
             setActiveChat(data.find(c => c._id === activeChat._id));
 
         } catch (err) {
-            alert("Failed to send reply");
+            showToast("Failed to send reply", "error");
         }
     };
 
@@ -72,8 +74,6 @@ const AdminSupportPage = () => {
     };
 
     const handleDeleteChat = async () => {
-        if (!window.confirm("Are you sure you want to delete this conversation? This action cannot be undone.")) return;
-
         try {
             const token = localStorage.getItem("token");
             const res = await fetch(`http://localhost:5000/admin/support/${activeChat._id}`, {
@@ -84,11 +84,12 @@ const AdminSupportPage = () => {
             if (res.ok) {
                 setChats(chats.filter(c => c._id !== activeChat._id));
                 setActiveChat(null);
+                showToast("Chat deleted successfully", "success");
             } else {
-                alert("Failed to delete chat");
+                showToast("Failed to delete chat", "error");
             }
         } catch (err) {
-            alert("Error deleting chat");
+            showToast("Error deleting chat", "error");
         }
     };
 

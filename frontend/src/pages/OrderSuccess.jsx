@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle, Truck, ArrowRight, Star } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 import './OrderSuccess.css';
 
 const OrderSuccess = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [orderNumber] = useState(Math.floor(100000 + Math.random() * 900000));
+  const { showToast } = useToast();
 
   // Get purchased items from navigation state
   const purchasedItems = location.state?.purchasedItems || [];
@@ -22,7 +24,7 @@ const OrderSuccess = () => {
 
   const handleSubmitReview = async () => {
     if (rating === 0) {
-      alert("Please select a star rating to continue.");
+      showToast("Please select a star rating to continue.", "error");
       return;
     }
 
@@ -50,13 +52,13 @@ const OrderSuccess = () => {
 
       if (res.ok) {
         setHasRated(true); // Unlock the "Continue Shopping" button
-        alert("Thank you for your feedback!");
+        showToast("Thank you for your feedback!", "success");
       } else {
-        alert("Failed to submit review. Please try again.");
+        showToast("Failed to submit review. Please try again.", "error");
       }
     } catch (err) {
       console.error(err);
-      alert("Error submitting review");
+      showToast("Error submitting review", "error");
     } finally {
       setIsSubmitting(false);
     }

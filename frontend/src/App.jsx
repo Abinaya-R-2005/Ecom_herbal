@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { WishlistProvider } from "./context/WishlistContext";
 import { CartProvider } from "./context/CartContext";
+import { ToastProvider } from "./context/ToastContext";
 
 import CategoryProducts from "./pages/CategoryProducts";
 import EditProductPage from "./admin/EditProductPage";
@@ -19,47 +20,53 @@ import RemoveProductPage from "./admin/RemoveProductPage";
 import AdminOrdersPage from "./admin/AdminOrdersPage";
 import AdminSupportPage from "./admin/AdminSupportPage"; // ✅ Import Admin Support
 import OrdersPage from "./pages/OrdersPage"; // ✅ Import Orders Page
+import AdminProfile from "./admin/AdminProfile"; // ✅ Import Admin Profile
 import CustomerService from "./pages/CustomerService"; // ✅ Import Customer Service Page
+import PendingProducts from "./admin/PendingProducts"; // ✅ Import Pending Products
 import Profile from "./pages/Profile";
 function App() {
   return (
-    <WishlistProvider>
-      <CartProvider>
-        <Router>
-          <Routes>
-            {/* Auth Route */}
-            <Route path="/" element={<AuthPage />} /> {/* Default to Login */}
-            <Route path="/admin/edit-product/:id" element={<EditProductPage />} />
+    <ToastProvider>
+      <WishlistProvider>
+        <CartProvider>
+          <Router>
+            <Routes>
+              {/* Auth Route */}
+              <Route path="/" element={<AuthPage />} /> {/* Default to Login */}
+              <Route path="/admin/edit-product/:id" element={<EditProductPage />} />
 
-            {/* Shop Routes */}
-            <Route path="/home" element={<HomePage />} />
-            <Route path="/wishlist" element={<WishlistPage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/orders" element={<OrdersPage />} /> {/* ✅ Orders Route */}
-            <Route path="/order-success" element={<OrderSuccess />} /> {/* ✅ Success Page */}
-            <Route path="/product/:id" element={<ProductDetailPage />} />
-            <Route path="/customer-service" element={<CustomerService />} />
+              {/* Shop Routes */}
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/wishlist" element={<WishlistPage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/orders" element={<OrdersPage />} /> {/* ✅ Orders Route */}
+              <Route path="/order-success" element={<OrderSuccess />} /> {/* ✅ Success Page */}
+              <Route path="/product/:id" element={<ProductDetailPage />} />
+              <Route path="/customer-service" element={<CustomerService />} />
 
-            {/* Admin Route (Optional if you have it) */}
-            {/* Admin Route */}
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/add-category" element={<AddCategory />} />
-            <Route path="/admin/add-product" element={<AddProduct />} />
-            <Route path="/admin/remove-product" element={<RemoveProductPage />} />
-            
-            <Route path="/admin/orders" element={<AdminOrdersPage />} />
-            <Route path="/admin/support" element={<AdminSupportPage />} />
+              {/* Admin Route (Optional if you have it) */}
+              {/* Admin Route */}
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/add-category" element={<AddCategory />} />
+              <Route path="/admin/add-product" element={<AddProduct />} />
+              <Route path="/admin/remove-product" element={<RemoveProductPage />} />
+              <Route path="/admin/pending-products" element={<PendingProducts />} />
 
-            {/* Category Products Route */}
-            <Route path="/category/:category" element={<CategoryProducts />} />
+              <Route path="/admin/orders" element={<AdminOrdersPage />} />
+              <Route path="/admin/support" element={<AdminSupportPage />} />
+              <Route path="/admin/profile" element={<AdminProfile />} />
 
-            <Route path="/profile" element={<Profile />} />
+              {/* Category Products Route */}
+              <Route path="/category/:category" element={<CategoryProducts />} />
 
-          </Routes>
-        </Router>
-      </CartProvider>
-    </WishlistProvider>
+              <Route path="/profile" element={<Profile />} />
+
+            </Routes>
+          </Router>
+        </CartProvider>
+      </WishlistProvider>
+    </ToastProvider>
   );
 }
 

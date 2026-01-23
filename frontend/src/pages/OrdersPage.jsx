@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaStar, FaBoxOpen, FaArrowLeft, FaCheck } from "react-icons/fa";
+import { useToast } from "../context/ToastContext";
 import "./OrdersPage.css";
 
 const OrdersPage = () => {
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [selectedOrder, setSelectedOrder] = useState(null); 
+    const [selectedOrder, setSelectedOrder] = useState(null);
     const [rating, setRating] = useState(0);
     const [comment, setComment] = useState("");
     const [hover, setHover] = useState(null);
+    const { showToast } = useToast();
 
     const user = JSON.parse(localStorage.getItem("user"));
 
@@ -41,7 +43,7 @@ const OrdersPage = () => {
 
     const handleSubmitReview = async () => {
         if (rating === 0) {
-            alert("Please select a star rating");
+            showToast("Please select a star rating", "error");
             return;
         }
 
@@ -55,19 +57,19 @@ const OrdersPage = () => {
         try {
             const res = await fetch("http://localhost:5000/reviews", {
                 method: "POST",
-                body: formData, 
+                body: formData,
             });
 
             if (res.ok) {
-                alert("Review submitted successfully!");
+                showToast("Review submitted successfully!", "success");
                 handleCloseModal();
             } else {
                 const data = await res.json();
-                alert(data.message || "Failed to submit review");
+                showToast(data.message || "Failed to submit review", "error");
             }
         } catch (err) {
             console.error(err);
-            alert("Error submitting review");
+            showToast("Error submitting review", "error");
         }
     };
 
@@ -122,7 +124,7 @@ const OrdersPage = () => {
                                     {stages.map((stage, index) => (
                                         <div key={stage} className={`step ${index <= currentStageIndex ? "active completed" : ""}`}>
                                             <div className="step-circle">
-                                                {index < currentStageIndex ? <FaCheck size={12}/> : index + 1}
+                                                {index < currentStageIndex ? <FaCheck size={12} /> : index + 1}
                                             </div>
                                             <div className="step-label">{stage}</div>
                                             {index < stages.length - 1 && <div className="step-line"></div>}
@@ -159,6 +161,36 @@ const OrdersPage = () => {
                                     <button className="rate-btn" onClick={() => handleOpenModal(order)}>
                                         <FaStar /> Rate & Review
                                     </button>
+
+                                    {(order.status === "Ordered" || order.status === "Pending") && (
+                                        <button
+                                            className="cancel-btn"
+                                            style={{
+                                                display: 'flex', alignItems: 'center', gap: '5px',
+                                                backgroundColor: '#ff4444', color: 'white', border: 'none',
+                                                padding: '8px 16px', borderRadius: '6px', cursor: 'pointer',
+                                                fontWeight: '600', fontSize: '14px', transition: 'all 0.2s'
+                                            }}
+                                            onClick={async () => {
+                                                try {
+                                                    const res = await fetch(`http://localhost:5000/orders/${order._id}/cancel-by-user`, {
+                                                        method: "PUT"
+                                                    });
+                                                    if (res.ok) {
+                                                        showToast("Cancellation requested. Waiting for admin approval.", "success");
+                                                        setOrders(prev => prev.map(o => o._id === order._id ? { ...o, status: 'Cancellation Requested' } : o));
+                                                    } else {
+                                                        showToast("Failed to request cancellation", "error");
+                                                    }
+                                                } catch (err) {
+                                                    console.error(err);
+                                                    showToast("Error requesting cancellation", "error");
+                                                }
+                                            }}
+                                        >
+                                            Request Cancel
+                                        </button>
+                                    )}
 
                                     <div className="demo-controls">
                                         {order.status === "Ordered" && (

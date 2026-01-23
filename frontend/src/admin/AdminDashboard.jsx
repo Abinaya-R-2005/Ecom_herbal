@@ -8,6 +8,8 @@ import {
   Layers,
   Headphones,
   LogOut,
+  User,
+  AlertCircle,
 } from "lucide-react";
 import "./AdminDashboard.css";
 
@@ -19,6 +21,7 @@ const AdminDashboard = () => {
     products: 0,
     orders: 0,
     discounts: 0,
+    pendingProducts: 0,
   });
 
   const [loading, setLoading] = useState(true);
@@ -26,18 +29,18 @@ const AdminDashboard = () => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user") || "null");
     if (!token || !user || !user.isAdmin) {
-      navigate("/login");
+      navigate("/login", { replace: true });
       return;
     }
     fetchStats();
-  }, [navigate]);
+  }, [navigate, token]);
 
   const fetchStats = async () => {
     try {
       setLoading(true);
 
       const [productsRes, ordersRes] = await Promise.all([
-        fetch("http://localhost:5000/products"),
+        fetch("http://localhost:5000/products?showAll=true"),
         fetch("http://localhost:5000/admin/orders", {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -50,15 +53,19 @@ const AdminDashboard = () => {
 
       const activeDiscounts = products.filter(
         (p) =>
-          p.discountPercent > 0 &&
+          p.discountAmount > 0 &&
           new Date(p.discountStart) <= new Date() &&
           new Date(p.discountEnd) >= new Date()
       );
 
+      const pendingProducts = products.filter(p => p.status === 'Pending');
+      const totalProducts = products.length;
+
       setStats({
-        products: products.length,
+        products: totalProducts,  // Now shows total products count
         orders: ordersData.orders.length,
         discounts: activeDiscounts.length,
+        pendingProducts: pendingProducts.length,
       });
     } catch (err) {
       console.error("Failed to load dashboard stats", err);
@@ -80,7 +87,10 @@ const AdminDashboard = () => {
     <div className="admin-page">
       <div className="admin-card">
         <div className="admin-header">
-          <h2>Admin Dashboard</h2>
+          <div className="admin-header-left">
+            <img src="/mom_logo.jpg" alt="Company Logo" className="admin-logo" />
+            <h2>Admin Dashboard</h2>
+          </div>
           <button className="logout-btn" onClick={handleLogout}>
             <LogOut size={16} /> Logout
           </button>
@@ -104,6 +114,12 @@ const AdminDashboard = () => {
             <h3>{stats.discounts}</h3>
             <p>Active Discounts</p>
           </div>
+
+          <div className="stat-card orange" style={{ background: 'linear-gradient(135deg, #ff9a56 0%, #ff6b6b 100%)' }}>
+            <AlertCircle />
+            <h3>{stats.pendingProducts}</h3>
+            <p>Pending Products</p>
+          </div>
         </div>
 
         <div className="admin-actions-grid">
@@ -119,12 +135,18 @@ const AdminDashboard = () => {
             <Package /> Manage Products
           </button>
 
+
+
           <button onClick={() => navigate("/admin/orders")}>
             <ShoppingBag /> Orders
           </button>
 
           <button onClick={() => navigate("/admin/support")}>
             <Headphones /> Support
+          </button>
+
+          <button onClick={() => navigate("/admin/profile")}>
+            <User /> Admin Profile
           </button>
         </div>
       </div>
