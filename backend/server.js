@@ -7,7 +7,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
-const { sendEmail } = require("./mailer");
+const { sendEmail } = require("./middleware/mailer");
 require("dotenv").config();
 
 const app = express();
