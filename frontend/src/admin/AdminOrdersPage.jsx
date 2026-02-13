@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Package, Clock, Eye, X, MapPin, CreditCard, ShoppingBag, Truck, CheckCircle, AlertCircle, CalendarDays } from "lucide-react";
 import { useToast } from "../context/ToastContext";
+import API_BASE_URL from '../apiConfig';
 import "./AdminOrdersPage.css";
 
 const STATUS_OPTIONS = [
@@ -40,22 +41,22 @@ const AdminOrdersPage = () => {
       setLoading(true);
       const token = localStorage.getItem("token");
 
-      let url = "http://localhost:5000/admin/orders";
+      let url = `${API_BASE_URL} /admin/orders`;
       const params = new URLSearchParams();
       if (fromDate) params.append("from", fromDate);
       if (toDate) params.append("to", toDate);
       if (statusFilter) params.append("status", statusFilter);
 
-      if (params.toString()) url += `?${params.toString()}`;
+      if (params.toString()) url += `? ${params.toString()} `;
 
       const res = await fetch(url, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token} `,
         },
       });
 
       if (!res.ok) {
-        throw new Error(`Failed to fetch orders: ${res.status} ${res.statusText}`);
+        throw new Error(`Failed to fetch orders: ${res.status} ${res.statusText} `);
       }
 
       const data = await res.json();
@@ -68,7 +69,7 @@ const AdminOrdersPage = () => {
       }
     } catch (err) {
       console.error("Failed to load orders", err);
-      showToast(`Error loading orders: ${err.message}`, "error");
+      showToast(`Error loading orders: ${err.message} `, "error");
     } finally {
       setLoading(false);
     }
@@ -83,11 +84,11 @@ const AdminOrdersPage = () => {
     const token = localStorage.getItem("token");
 
     try {
-      const res = await fetch(`http://localhost:5000/admin/orders/${id}`, {
+      const res = await fetch(`${API_BASE_URL} /admin/orders / ${id} `, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token} `,
         },
         body: JSON.stringify({ status }),
       });
@@ -190,7 +191,7 @@ const AdminOrdersPage = () => {
                       <td>
                         <select
                           value={o.status || "Ordered"}
-                          className={`status-select ${(o.status || "ordered").toLowerCase()}`}
+                          className={`status - select ${(o.status || "ordered").toLowerCase()} `}
                           onChange={(e) => updateStatus(o._id, e.target.value)}
                           style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                         >

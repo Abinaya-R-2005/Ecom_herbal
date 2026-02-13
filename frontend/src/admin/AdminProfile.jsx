@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API_BASE_URL from '../apiConfig';
 import { FaUserCircle, FaEnvelope, FaSave, FaArrowLeft, FaShieldAlt, FaEye, FaEyeSlash, FaKey } from "react-icons/fa";
 import "../pages/Profile.css"; // Correct path
 
@@ -24,38 +25,31 @@ const AdminProfile = () => {
 
     const fetchAdminSettings = async () => {
         try {
-            const emailRes = await fetch("http://localhost:5000/admin/settings/adminEmail", {
+            const emailRes = await fetch(`${API_BASE_URL}/admin/settings/adminEmail`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const emailData = await emailRes.json();
-            setAdminEmail(emailData.value || "");
+            if (emailData.value) setAdminEmail(emailData.value);
 
-            const passRes = await fetch("http://localhost:5000/admin/settings/googlePassword", {
+            const passRes = await fetch(`${API_BASE_URL}/admin/settings/googlePassword`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const passData = await passRes.json();
-            setGooglePassword(passData.value || "");
+            if (passData.value) setGooglePassword(passData.value);
         } catch (err) {
             console.error("Failed to fetch settings", err);
-        } finally {
-            setLoading(false);
         }
     };
 
-    const handleSave = async (e) => {
-        e.preventDefault();
-        if (!adminEmail) {
-            setMessage("Admin email is required!");
-            return;
-        }
-        if (!googlePassword) {
-            setMessage("Google App Password is required!");
-            return;
-        }
+    useEffect(() => {
+        if (token) fetchAdminSettings();
+    }, [token]);
 
+    const handleSaveSettings = async (e) => {
+        e.preventDefault();
         setMessage("Saving...");
         try {
-            const emailRes = await fetch("http://localhost:5000/admin/settings", {
+            const emailRes = await fetch(`${API_BASE_URL}/admin/settings`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -64,7 +58,7 @@ const AdminProfile = () => {
                 body: JSON.stringify({ key: "adminEmail", value: adminEmail })
             });
 
-            const passRes = await fetch("http://localhost:5000/admin/settings", {
+            const passRes = await fetch(`${API_BASE_URL}/admin/settings`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -74,12 +68,13 @@ const AdminProfile = () => {
             });
 
             if (emailRes.ok && passRes.ok) {
-                setMessage("✓ All settings saved successfully!");
+                setMessage("Settings saved successfully!");
                 setTimeout(() => setMessage(""), 3000);
             } else {
-                setMessage("Failed to save settings.");
+                setMessage("Failed to save some settings.");
             }
         } catch (err) {
+            console.error(err);
             setMessage("Error saving settings.");
         }
     };
@@ -221,12 +216,12 @@ const AdminProfile = () => {
 
                                 <div style={{ marginTop: '20px', padding: '15px', background: '#FFF3E0', borderRadius: '8px', border: '1px solid #FFE0B2' }}>
                                     <p style={{ margin: '0 0 15px 0', fontWeight: 'bold', color: '#E65100', fontSize: '0.95rem' }}>🔐 Quick Setup - Get Google App Password:</p>
-                                    
+
                                     <div style={{ marginBottom: '15px', padding: '10px', background: '#fff9f0', borderRadius: '6px', border: '1px solid #FFE0B2' }}>
                                         <p style={{ margin: '5px 0', color: '#E65100', fontSize: '0.9rem' }}><strong>Step 1:</strong> Click here to go directly to Google App Passwords:</p>
-                                        <a 
-                                            href="https://myaccount.google.com/apppasswords" 
-                                            target="_blank" 
+                                        <a
+                                            href="https://myaccount.google.com/apppasswords"
+                                            target="_blank"
                                             rel="noopener noreferrer"
                                             style={{
                                                 display: 'inline-block',
@@ -246,9 +241,9 @@ const AdminProfile = () => {
 
                                     <div style={{ marginBottom: '15px', padding: '10px', background: '#fff9f0', borderRadius: '6px' }}>
                                         <p style={{ margin: '5px 0', color: '#E65100', fontSize: '0.9rem' }}><strong>Step 2:</strong> If 2-Step Verification is NOT enabled:</p>
-                                        <a 
-                                            href="https://myaccount.google.com/security" 
-                                            target="_blank" 
+                                        <a
+                                            href="https://myaccount.google.com/security"
+                                            target="_blank"
                                             rel="noopener noreferrer"
                                             style={{
                                                 display: 'inline-block',

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API_BASE_URL from '../apiConfig';
 import "./AddCategory.css";
 
 const ADMIN_EMAIL = "admin@gmail.com";
@@ -12,7 +13,7 @@ const AddCategory = () => {
 
   // Fetch categories
   const fetchCategories = async () => {
-    const res = await fetch("http://localhost:5000/categories");
+    const res = await fetch(`${API_BASE_URL}/categories`);
     const data = await res.json();
     setCategories(data);
   };
@@ -22,28 +23,29 @@ const AddCategory = () => {
   }, []);
 
   // Add or Update category
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     if (!name) return;
     const token = localStorage.getItem("token");
 
     if (editId) {
-      await fetch(`http://localhost:5000/admin/category/${editId}`, {
+      await fetch(`${API_BASE_URL}/admin/category/${editId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ name, email: ADMIN_EMAIL }),
+        body: JSON.stringify({ name, email: ADMIN_EMAIL })
       });
       setEditId(null);
     } else {
-      await fetch("http://localhost:5000/admin/category", {
+      await fetch(`${API_BASE_URL}/admin/category`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ name, email: ADMIN_EMAIL }),
+        body: JSON.stringify({ name, email: ADMIN_EMAIL })
       });
     }
 
@@ -60,7 +62,7 @@ const AddCategory = () => {
   // Delete
   const handleDelete = async (id) => {
     const token = localStorage.getItem("token");
-    await fetch(`http://localhost:5000/admin/category/${id}`, {
+    await fetch(`${API_BASE_URL}/admin/category/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",

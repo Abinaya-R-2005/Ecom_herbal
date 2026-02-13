@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FaCloudUploadAlt, FaTimes, FaArrowLeft, FaPaperPlane, FaPlus } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../context/ToastContext";
+import API_BASE_URL from '../apiConfig';
 import "./CustomerService.css";
 
 const CustomerService = () => {
@@ -25,7 +26,7 @@ const CustomerService = () => {
 
     const fetchChats = async () => {
         try {
-            const res = await fetch(`http://localhost:5000/support/user/${user.email}`);
+            const res = await fetch(`${API_BASE_URL}/support/user/${user.email}`);
             const data = await res.json();
             setChats(data);
         } catch (err) {
@@ -42,7 +43,7 @@ const CustomerService = () => {
         if (image) formData.append("image", image);
 
         try {
-            await fetch("http://localhost:5000/support/start", {
+            await fetch(`${API_BASE_URL}/support/start`, {
                 method: "POST",
                 body: formData
             });
@@ -66,7 +67,7 @@ const CustomerService = () => {
         if (image) formData.append("image", image);
 
         try {
-            await fetch(`http://localhost:5000/support/${activeChat._id}/message`, {
+            await fetch(`${API_BASE_URL}/support/${activeChat._id}/message`, {
                 method: "PUT",
                 body: formData
             });
@@ -80,7 +81,7 @@ const CustomerService = () => {
             // but we need to update activeChat to show immediate feedback if possible
             // Re-fetching specific chat or just list is fine.
             // Let's just re-fetch lists and find the active chat again.
-            const res = await fetch(`http://localhost:5000/support/user/${user.email}`);
+            const res = await fetch(`${API_BASE_URL}/support/user/${user.email}`);
             const data = await res.json();
             setChats(data);
             setActiveChat(data.find(c => c._id === activeChat._id));
@@ -180,7 +181,7 @@ const CustomerService = () => {
                                     <div key={idx} className={`message-bubble ${msg.sender}`}>
                                         <div className="message-content">
                                             {msg.text}
-                                            {msg.image && <img src={`http://localhost:5000${msg.image}`} alt="attachment" />}
+                                            {msg.image && <img src={`${API_BASE_URL}${msg.image}`} alt="attachment" />}
                                         </div>
                                         <span className="message-time">
                                             {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

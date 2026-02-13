@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
+import Header from "../components/Header";
+import API_BASE_URL from "../apiConfig";
 import "./CategoryProducts.css";
 
 const CategoryProducts = () => {
@@ -11,7 +13,7 @@ const CategoryProducts = () => {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:5000/products/category/${category}`)
+    fetch(`${API_BASE_URL}/products/category/${category}`)
       .then(res => res.json())
       .then(data => {
         setProducts(data || []);
@@ -25,7 +27,7 @@ const CategoryProducts = () => {
 
   return (
     <div className="category-page">
-      
+
       {/* 🔙 BACK BUTTON */}
       <button className="back-btn" onClick={() => navigate(-1)}>
         ← Back

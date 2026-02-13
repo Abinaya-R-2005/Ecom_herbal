@@ -11,6 +11,7 @@ import {
   User,
   AlertCircle,
 } from "lucide-react";
+import API_BASE_URL from '../apiConfig';
 import "./AdminDashboard.css";
 
 const AdminDashboard = () => {
@@ -40,8 +41,8 @@ const AdminDashboard = () => {
       setLoading(true);
 
       const [productsRes, ordersRes] = await Promise.all([
-        fetch("http://localhost:5000/products?showAll=true"),
-        fetch("http://localhost:5000/admin/orders", {
+        fetch(`${API_BASE_URL}/products?showAll=true`),
+        fetch(`${API_BASE_URL}/admin/orders`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

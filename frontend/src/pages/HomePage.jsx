@@ -6,6 +6,7 @@ import ProductCard from "../components/ProductCard";
 import { FaStar } from "react-icons/fa";
 import "./HomePage.css";
 import React, { useState, useEffect } from "react";
+import API_BASE_URL from "../apiConfig";
 
 const HomePage = () => {
   const [priceRange, setPriceRange] = useState(2000);
@@ -44,12 +45,12 @@ const HomePage = () => {
   });
 
   useEffect(() => {
-    fetch("http://localhost:5000/products")
+    fetch(`${API_BASE_URL}/products`)
       .then(res => res.json())
       .then(data => setProducts(data))
       .catch(err => console.error("Failed to fetch products", err));
 
-    fetch("http://localhost:5000/categories")
+    fetch(`${API_BASE_URL}/categories`)
       .then(res => res.json())
       .then(data => setCategories(data))
       .catch(err => console.error("Failed to fetch categories", err));

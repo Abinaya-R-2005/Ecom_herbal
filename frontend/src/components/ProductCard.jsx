@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useWishlist } from "../context/WishlistContext";
 import { useCart } from "../context/CartContext";
 import "./ProductCard.css";
+import API_BASE_URL from '../apiConfig';
 
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ const ProductCard = ({ product }) => {
 
   const handleAddToCart = () => {
     addToCart(product);
-    
+
     // Automatically remove from wishlist if item is moved to cart
     if (isWishlisted) {
       removeFromWishlist(product._id);
@@ -37,16 +38,16 @@ const ProductCard = ({ product }) => {
   };
   const now = new Date();
 
-const discountActive =
-  product.discountAmount > 0 &&
-  product.discountStart &&
-  product.discountEnd &&
-  now >= new Date(product.discountStart) &&
-  now <= new Date(product.discountEnd);
+  const discountActive =
+    product.discountAmount > 0 &&
+    product.discountStart &&
+    product.discountEnd &&
+    now >= new Date(product.discountStart) &&
+    now <= new Date(product.discountEnd);
 
-const discountedPrice = discountActive
-  ? Math.round(product.price - product.discountAmount)
-  : product.price;
+  const discountedPrice = discountActive
+    ? Math.round(product.price - product.discountAmount)
+    : product.price;
 
 
   return (
@@ -56,7 +57,7 @@ const discountedPrice = discountActive
           <FaHeart />
         </button>
 
-        <img src={`http://localhost:5000${product.image}`} alt={product.name} />
+        <img src={`${API_BASE_URL}${product.image}`} alt={product.name} />
 
         {showAdded && <div className="added-toast">Product added to cart</div>}
 
@@ -78,15 +79,15 @@ const discountedPrice = discountActive
           <span style={{ fontSize: '0.8rem', color: '#666' }}>({product.ratingCount || 0})</span>
         </div>
         <div className="price-box">
-  {discountActive ? (
-    <>
-      <span className="original-price">₹{product.price}</span>
-      <span className="discounted-price">₹{discountedPrice}</span>
-    </>
-  ) : (
-    <span className="normal-price">₹{product.price} </span>
-  )}
-</div>
+          {discountActive ? (
+            <>
+              <span className="original-price">₹{product.price}</span>
+              <span className="discounted-price">₹{discountedPrice}</span>
+            </>
+          ) : (
+            <span className="normal-price">₹{product.price} </span>
+          )}
+        </div>
 
         <button className="add-cart-full" onClick={handleAddToCart}>
           <FaShoppingCart /> {isWishlisted && location.pathname === "/wishlist" ? "Move to Cart" : "Add to Cart"}

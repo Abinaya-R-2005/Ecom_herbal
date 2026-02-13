@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CheckCircle, XCircle, Eye } from "lucide-react";
 import { useToast } from "../context/ToastContext";
+import API_BASE_URL from '../apiConfig';
 import "./RemoveProductPage.css"; // Reuse existing styles
 
 const PendingProducts = () => {
@@ -24,8 +25,8 @@ const PendingProducts = () => {
   const fetchPendingProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5000/products?showAll=true");
-      const allProducts = await response.json();
+      const res = await fetch(`${API_BASE_URL}/products?showAll=true`);
+      const allProducts = await res.json();
       const pending = allProducts.filter(p => p.status === 'Pending');
       setPendingProducts(pending);
     } catch (err) {
@@ -39,7 +40,7 @@ const PendingProducts = () => {
   const handleApprove = async (productId) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/products/${productId}/approve`
+        `${API_BASE_URL}/products/${productId}/approve`
       );
       if (response.ok) {
         showToast("Product approved successfully!", "success");
@@ -56,7 +57,7 @@ const PendingProducts = () => {
     const rejectionReason = reason || "Product does not meet store standards";
     try {
       const response = await fetch(
-        `http://localhost:5000/products/${productId}/reject?reason=${encodeURIComponent(
+        `${API_BASE_URL}/products/${productId}/reject?reason=${encodeURIComponent(
           rejectionReason
         )}`
       );
@@ -159,7 +160,7 @@ const PendingProducts = () => {
 
             {selectedProduct.image && (
               <img
-                src={selectedProduct.image}
+                src={`${API_BASE_URL}${selectedProduct.image}`}
                 alt={selectedProduct.name}
                 className="modal-image"
               />

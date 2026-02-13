@@ -4,7 +4,7 @@ import { FaGoogle, FaFacebookF, FaEnvelope, FaLock, FaUser, FaEye, FaEyeSlash } 
 import { useNavigate } from "react-router-dom";
 import { useToast } from '../context/ToastContext';
 import './AuthPage.css';
-
+import API_BASE_URL from '../apiConfig';
 
 const AuthPage = () => {
     const [name, setName] = useState("");
@@ -62,7 +62,7 @@ const AuthPage = () => {
             return;
         }
         try {
-            const res = await fetch("http://localhost:5000/signup", {
+            const res = await fetch(`${API_BASE_URL}/signup`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name, email, password })
@@ -84,7 +84,7 @@ const AuthPage = () => {
     const handleLogin = async (e) => {
         e.preventDefault();   // 🔴 THIS LINE FIXES EVERYTHING
 
-        const res = await fetch("http://localhost:5000/login", {
+        const res = await fetch(`${API_BASE_URL}/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password })

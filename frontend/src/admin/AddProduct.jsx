@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../context/ToastContext";
+import API_BASE_URL from '../apiConfig';
 import "./AddProduct.css";
 
 const AddProduct = () => {
@@ -19,28 +20,27 @@ const AddProduct = () => {
   const { showToast } = useToast();
 
   useEffect(() => {
-    fetch("http://localhost:5000/categories")
+    fetch(`${API_BASE_URL}/categories`)
       .then((res) => res.json())
       .then((data) => setCategories(data));
   }, []);
 
-  const handleSubmit = async () => {
+  const handleAddProduct = async (e) => {
+    e.preventDefault();
+
     const formData = new FormData();
-    formData.append("name", form.name);
-    formData.append("category", form.category);
-    formData.append("price", form.price);
-    formData.append("description", form.description);
-    formData.append("email", adminEmail);
-    formData.append("image", image); // 🔥 IMPORTANT
+    Object.keys(form).forEach((key) => formData.append(key, form[key]));
+    formData.append("email", adminEmail); // Keep this as it's not part of `form` state
+    formData.append("image", image); // Keep this as it's not part of `form` state
 
     const token = localStorage.getItem("token");
 
-    const res = await fetch("http://localhost:5000/admin/product", {
+    const res = await fetch(`${API_BASE_URL}/admin/product`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`
       },
-      body: formData,
+      body: formData
     });
 
     if (res.ok) {

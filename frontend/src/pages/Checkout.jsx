@@ -3,6 +3,7 @@ import { useCart } from "../context/CartContext";
 import { ChevronLeft, Lock, FileText } from 'lucide-react';
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from '../context/ToastContext';
+import API_BASE_URL from "../apiConfig";
 import OrderReceipt from '../components/OrderReceipt';
 import './Checkout.css';
 
@@ -68,7 +69,7 @@ const Checkout = () => {
         const itemShippingCost = shippingCost / itemsToCheckout.length;
         const itemTotal = itemSubtotal + itemTax + itemShippingCost;
 
-        return fetch("http://localhost:5000/orders", {
+        return fetch(`${API_BASE_URL}/orders`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -351,7 +352,7 @@ const Checkout = () => {
                     {/* ✅ Robust Image Loading Logic */}
                     <img
                       src={(item.image || item.img || "").startsWith("/")
-                        ? `http://localhost:5000${item.image || item.img}`
+                        ? `${API_BASE_URL}${item.image || item.img}`
                         : (item.image || item.img || "https://via.placeholder.com/80")}
                       alt={item.name}
                     />
