@@ -13,7 +13,16 @@ require("dotenv").config();
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use("/uploads", express.static("uploads"));
+
+// ✅ Auto-create uploads folder (Robust Fix using __dirname)
+// This ensures it works even if you start the server from a different directory
+const uploadsDir = path.join(__dirname, "uploads");
+console.log("📂 Serving uploads from:", uploadsDir);
+
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use("/uploads", express.static(uploadsDir));
 
 /* ================= MONGODB ================= */
 mongoose
@@ -158,7 +167,7 @@ const Settings = mongoose.model("Settings", settingsSchema);
 
 /* ================= IMAGE UPLOAD ================= */
 const storage = multer.diskStorage({
-  destination: "uploads/",
+  destination: uploadsDir,
   filename: (req, file, cb) =>
     cb(null, Date.now() + path.extname(file.originalname)),
 });
